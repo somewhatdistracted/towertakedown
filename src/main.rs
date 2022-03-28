@@ -1,88 +1,28 @@
 use macroquad::prelude::*;
+use crate::entities::*;
 
-const SHIP_HEIGHT: f32 = 25.;
-const SHIP_BASE: f32 = 22.;
+pub mod entities;
+
 const HEX_SIZE: f32 = 50.;
 const BUTTON_WAIT: f64 = 0.01;
 
-#[derive(Clone)]
-struct HexGrid {
-    size: u8,
-    grid: Vec<Vec<Hex>>,
-}
-
-#[derive(Clone, Copy)]
-struct Hex {
-    pos: Vec2,
-    rot: f32,
-}
-
-#[derive(Clone)]
-struct Character {
-    posx: i8,
-    posy: i8,
-    hex: Hex,
-}
-
-impl Character {
-    fn move_on_map(&mut self, dx: i8, dy: i8, map: &HexGrid) {
-        if self.posy + dy >= 0 && ((self.posy + dy) as usize) < map.grid.len() && self.posx + dx >= 0 && ((self.posx + dx) as usize) < map.grid[(self.posy + dy) as usize].len() {
-            self.posy += dy;
-            self.posx += dx;
-            self.hex = map.grid[self.posy as usize][self.posx as usize];
-        }
-    }
-}
-
-trait Visual {
-    fn render(&self);
-}
-
-impl Visual for Hex {
-    fn render(&self) {
-        draw_poly_lines(
-            self.pos.x,
-            self.pos.y,
-            6,
-            HEX_SIZE,
-            self.rot,
-            2.,
-            BLACK,
-        )
-    }
-}
-
-impl Visual for HexGrid {
-    fn render(&self) {
-        for row in self.grid.iter() {
-            for hex in row.iter() {
-                hex.render();
-            }
-        }
-    }
-}
-
-impl Visual for Character {
-    fn render(&self) {
-        let pos = self.hex.pos;
-        let v1 = Vec2::new(
-            pos.x,
-            pos.y - 1. * SHIP_HEIGHT / 2.,
-        );
-        let v2 = Vec2::new(
-            pos.x - 1. * SHIP_BASE / 2.,
-            pos.y + 1. * SHIP_HEIGHT / 2.,
-        );
-        let v3 = Vec2::new(
-            pos.x + 1. * SHIP_BASE / 2.,
-            pos.y + 1. * SHIP_HEIGHT / 2.,
-        );
-        draw_triangle_lines(v1, v2, v3, 2., BLACK);
-    }
+fn draw_fps() {
+    let t_fps = format!("FPS: {}", get_fps());
+    let font_size = 30.;
+    let ts_fps = measure_text(&t_fps, None, font_size as _, 1.0);
+    draw_text(
+        &t_fps,
+        screen_width() - ts_fps.width * 1.2,
+        ts_fps.height * 1.2,
+        font_size,
+        DARKGRAY,
+    );
 }
 
 #[macroquad::main("TowerTakedown")]
 async fn main() {
+    let tile_set = load_texture("resources/piskelite.png").await.unwrap();
+
     let mut last_move = get_time();
     let mut load_screen = true;
 
@@ -107,12 +47,13 @@ async fn main() {
         posx: 2,
         posy: 3,
         hex: map.grid[3][2],
+        sprite: tile_set,
     };
 
     loop {
         if load_screen {
             clear_background(LIGHTGRAY);
-            let mut text = "Hi! Press [enter] to play.";
+            let text = "Hi! Press [enter] to play.";
             let font_size = 30.;
             let text_size = measure_text(text, None, font_size as _, 1.0);
             draw_text(
@@ -126,6 +67,18 @@ async fn main() {
                 load_screen = false;
                 screen_center = Vec2::new(screen_width() / 2., screen_height() / 2.);
             }
+
+            draw_texture_ex(
+                tile_set,
+                screen_center.x,
+                screen_center.y,
+                WHITE,
+                DrawTextureParams {
+                    ..Default::default()
+                },
+            );
+            draw_fps();
+
             next_frame().await;
             continue;
         }
