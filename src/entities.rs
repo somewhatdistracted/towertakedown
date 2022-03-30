@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 
 //const SHIP_HEIGHT: f32 = 25.;
 //const SHIP_BASE: f32 = 22.;
-const HEX_SIZE: f32 = 50.;
+const HEX_SIZE: f32 = 30.;
 
 #[derive(Clone)]
 pub struct HexGrid {
@@ -48,7 +48,19 @@ impl Visual for Hex {
             self.rot,
             2.,
             BLACK,
-        )
+        );
+        let (mx, my) = mouse_position();
+        if (Vec2::new(mx,my) - self.pos).length() < HEX_SIZE {
+            draw_poly_lines(
+                self.pos.x,
+                self.pos.y,
+                6,
+                HEX_SIZE + 2.,
+                self.rot,
+                2.,
+                GREEN,
+            )
+        }
     }
 }
 
@@ -65,14 +77,17 @@ impl Visual for HexGrid {
 impl Visual for Character {
     fn render(&self) {
         let pos = self.hex.pos;
+        let draw_rect: Rect = Rect::new(32. * 0., 32. * ((2. * get_time()) as i64 % 2) as f32, 32., 32.);
+
         draw_texture_ex(
             self.sprite,
-            pos.x - self.sprite.width() / 2.,
-            pos.y - self.sprite.height() / 2.,
+            pos.x - draw_rect.size().x / 2.,
+            pos.y - draw_rect.size().y / 2.,
             WHITE,
             DrawTextureParams {
+                source: Some(draw_rect),
                 ..Default::default()
-            },  
+            },
         );  
         /*
         let v1 = Vec2::new(

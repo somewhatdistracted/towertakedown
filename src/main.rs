@@ -1,9 +1,11 @@
 use macroquad::prelude::*;
 use crate::entities::*;
+use crate::ui::*;
 
 pub mod entities;
+pub mod ui;
 
-const HEX_SIZE: f32 = 50.;
+const HEX_SIZE: f32 = 30.;
 const BUTTON_WAIT: f64 = 0.01;
 
 fn draw_fps() {
@@ -29,8 +31,8 @@ async fn main() {
     let mut screen_center = Vec2::new(screen_width() / 2., screen_height() / 2.);
 
     let mut map = HexGrid {
-        size: 3,
-        grid: vec![Vec::new(); 5],
+        size: 5,
+        grid: vec![Vec::new(); 9],
     };
     let map_top = screen_center + Vec2::new(- 2. * HEX_SIZE * (map.size - 2) as f32, - 2. * HEX_SIZE * (map.size - 1) as f32);
     
@@ -43,11 +45,17 @@ async fn main() {
         }
     }
     
-    let mut char = Character {
+    let mut character = Character {
         posx: 2,
         posy: 3,
         hex: map.grid[3][2],
         sprite: tile_set,
+    };
+
+    let menu = UIButton {
+        rect: Rect::new(50., 50., 200., 50.),
+        text: format!("Menu"),
+        font_size: 48.,
     };
 
     loop {
@@ -86,27 +94,27 @@ async fn main() {
 
         // my additions
         if is_key_pressed(KeyCode::W) && frame_t - last_move > BUTTON_WAIT {
-            char.move_on_map(-1,-1,&map);
+            character.move_on_map(-1,-1,&map);
             last_move = frame_t;
         }
         if is_key_pressed(KeyCode::A) && frame_t - last_move > BUTTON_WAIT {
-            char.move_on_map(-1,0,&map);
+            character.move_on_map(-1,0,&map);
             last_move = frame_t;
         }
         if is_key_pressed(KeyCode::E) && frame_t - last_move > BUTTON_WAIT {
-            char.move_on_map(0,-1,&map);
+            character.move_on_map(0,-1,&map);
             last_move = frame_t;
         }
         if is_key_pressed(KeyCode::Z) && frame_t - last_move > BUTTON_WAIT {
-            char.move_on_map(0,1,&map);
+            character.move_on_map(0,1,&map);
             last_move = frame_t;
         }
         if is_key_pressed(KeyCode::D) && frame_t - last_move > BUTTON_WAIT {
-            char.move_on_map(1,0,&map);
+            character.move_on_map(1,0,&map);
             last_move = frame_t;
         }
         if is_key_pressed(KeyCode::X) && frame_t - last_move > BUTTON_WAIT {
-            char.move_on_map(1,1,&map);
+            character.move_on_map(1,1,&map);
             last_move = frame_t;
         }
 
@@ -117,7 +125,9 @@ async fn main() {
         clear_background(LIGHTGRAY);
 
         map.render();
-        char.render();
+        character.render();
+        menu.render();
+        draw_fps();
 
         next_frame().await
     }
