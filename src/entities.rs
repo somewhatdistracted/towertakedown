@@ -13,11 +13,18 @@ pub enum Direction {
     DownRight,
 }
 
+#[derive(PartialEq)]
+pub enum Turn {
+    Player,
+    Computer,
+}
+
 pub struct Game {
     pub map: HexGrid,
     pub entities: Vec<Box<dyn Entity>>,
     pub ui: Vec<Box<dyn Clickable>>,
     pub select: usize,
+    pub turn: Turn,
 }
 
 #[derive(Clone)]
@@ -61,6 +68,7 @@ impl Game {
             }
             self.map.process_click(mpos, &mut *self.entities[self.select]);
         }
+        self.turn = Turn::Computer;
     }
 
     pub fn process_ai(&mut self) {
@@ -69,6 +77,7 @@ impl Game {
                 entity.take_turn(&mut self.map);
             }
         }
+        self.turn = Turn::Player;
     }
 
     pub fn render(&self) {

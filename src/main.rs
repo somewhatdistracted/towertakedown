@@ -24,7 +24,7 @@ fn draw_fps() {
 async fn main() {
     let tile_set = load_texture("resources/piskelite.png").await.unwrap();
 
-    //let mut last_move = get_time();
+    let mut turn_end = get_time();
     let mut load_screen = true;
 
     let mut screen_center = Vec2::new(screen_width() / 2., screen_height() / 2.);
@@ -57,6 +57,7 @@ async fn main() {
         entities: vec![Box::new(character)],
         ui: vec![Box::new(reset_button)],
         select: 0,
+        turn: Turn::Player,
     };
 
     loop {
@@ -92,35 +93,6 @@ async fn main() {
             next_frame().await;
             continue;
         }
-        //let frame_t = get_time();
-
-        // my additions
-        /*
-        if is_key_pressed(KeyCode::W) && frame_t - last_move > BUTTON_WAIT {
-            character.move_on_map(-1,-1,&map);
-            last_move = frame_t;
-        }
-        if is_key_pressed(KeyCode::A) && frame_t - last_move > BUTTON_WAIT {
-            character.move_on_map(-1,0,&map);
-            last_move = frame_t;
-        }
-        if is_key_pressed(KeyCode::E) && frame_t - last_move > BUTTON_WAIT {
-            character.move_on_map(0,-1,&map);
-            last_move = frame_t;
-        }
-        if is_key_pressed(KeyCode::Z) && frame_t - last_move > BUTTON_WAIT {
-            character.move_on_map(0,1,&map);
-            last_move = frame_t;
-        }
-        if is_key_pressed(KeyCode::D) && frame_t - last_move > BUTTON_WAIT {
-            character.move_on_map(1,0,&map);
-            last_move = frame_t;
-        }
-        if is_key_pressed(KeyCode::X) && frame_t - last_move > BUTTON_WAIT {
-            character.move_on_map(1,1,&map);
-            last_move = frame_t;
-        }
-        */
 
         if load_screen {
             continue;
@@ -131,7 +103,17 @@ async fn main() {
         game.render();
         menu_button.render();
         draw_fps();
-        game.process_input();
+
+        if get_time() - turn_end > 1.5 {
+            println!("trig frame");
+            if game.turn == Turn::Player {
+                game.process_input();
+                turn_end = get_time();
+            } else {
+                game.process_ai();
+                turn_end = get_time();
+            }
+        }
 
         next_frame().await
     }
